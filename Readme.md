@@ -34,7 +34,7 @@ Getting started with ExpressKit is easy asf! Follow the steps below and get your
 #### Git
   1. **Clone the Repository**
    ```sh
-   git clone https://github.com/yourusername/ExpressKit.git
+   git clone https://github.com/roee1454/ExpressKit.git
    cd ExpressKit
   ```
   2. Follow the `setup_guide.txt` file (5 minutes tops!)
