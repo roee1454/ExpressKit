@@ -3,7 +3,11 @@ import bcrypt from "bcrypt";
 import { sendEmail } from "../modules/nodemailer";
 import { PrismaClient } from "@prisma/client";
 import type { Response, Request, NextFunction } from "express";
-import type { UserCredentionals, User } from "../types/authTypes";
+import type {
+  UserCredentionals,
+  User,
+  RequestWithUser,
+} from "../types/authTypes";
 
 //Global Variables
 const secretKey = process.env.JWT_SECRET_KEY;
@@ -79,7 +83,7 @@ export async function handleLogin(req: Request, res: Response) {
     expiresIn: 1 * 60 * 60 * 24 * 7,
   });
 
-  await prisma.$disconnect()
+  await prisma.$disconnect();
 
   return res
     .status(200)
@@ -144,7 +148,7 @@ export async function handleEmailVerfication(req: Request, res: Response) {
     },
   });
 
-  await prisma.$disconnect()
+  await prisma.$disconnect();
 
   return res.status(200).send("User verified successfully!");
 }
@@ -171,7 +175,6 @@ export function handleSendPasswordResest(req: Request, res: Response) {
     }
   );
 }
-
 
 //Handle password reset
 export async function handlePasswordReset(req: Request, res: Response) {
@@ -228,19 +231,23 @@ export function handleLogout(_: Request, res: Response) {
 }
 
 //Handle auth protected routes
-export async function handleVerifyAuthorization(req: Request, res: Response, nextFunction: NextFunction) {
+export async function handleVerifyAuthorization(
+  req: RequestWithUser,
+  res: Response,
+  nextFunction: NextFunction
+) {
   const { token } = req.cookies;
   if (!token) {
-    return res.status(401).send("Unauthorized!")
+    return res.status(401).send("Unauthorized!");
   }
 
-  const payload  = jwt.verify(token, secretKey) as { id: string };
+  const payload = jwt.verify(token, secretKey) as { id: string };
 
   const prisma = new PrismaClient();
   const resultUser = await prisma.user.findFirst({
     where: {
-      id: payload.id
-    }
+      id: payload.id,
+    },
   });
 
   if (!resultUser) {
@@ -249,5 +256,119 @@ export async function handleVerifyAuthorization(req: Request, res: Response, nex
 
   await prisma.$disconnect();
 
+  req.user = resultUser;
+
   nextFunction();
+}
+//Handle get all users at once..
+export async function handleGetAllUsers(_: RequestWithUser, res: Response) {
+  const prisma = new PrismaClient();
+  const resultUsers = await prisma.user.findMany();
+
+  if (!resultUsers) {
+    return res.status(500).send("Error while finding users");
+  }
+
+  await prisma.$disconnect();
+  return res.status(200).json(resultUsers);
+}
+//Handle get a single user..
+export async function handleGetUser(req: RequestWithUser, res: Response) {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(500).send("Empty argument");
+  }
+
+  const prisma = new PrismaClient();
+
+  const resultUser = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  await prisma.$disconnect();
+
+  return res.status(200).json(resultUser);
+}
+//Handle creating a user..
+export async function handleCreateUser(req: RequestWithUser, res: Response) {
+  const user: User = req.body;
+
+  const hashedPassword = bcrypt.hashSync(user.passwordHash, 10);
+  user.passwordHash = hashedPassword;
+
+  const prisma = new PrismaClient();
+
+  const resultUser = await prisma.user.create({ data: { ...user, isVerified: false } });
+
+  await prisma.$disconnect();
+
+  return res.status(200).json(resultUser);
+}
+//Handle updating a user..
+export async function handleUpdateUser(req: RequestWithUser, res: Response) {
+  const { id } = req.params;
+  const data = req.body;
+
+  if (!id || !data) {
+    return res.status(500).send("Empty arguements");
+  }
+
+  const prisma = new PrismaClient();
+
+  const resultUser = await prisma.user.update({
+    where: {
+      id,
+    },
+    data,
+  });
+
+  await prisma.$disconnect();
+
+  return res.status(200).json(resultUser);
+}
+
+export async function handleDeleteUser(req: RequestWithUser, res: Response) {
+  const { id } = req.params;
+
+  const prisma = new PrismaClient();
+
+  await prisma.user.delete({
+    where: {
+      id,
+    },
+  });
+
+  await prisma.$disconnect();
+
+  return res.status(200).send("User deleted successfully");
+}
+
+export async function handleGetCurrentUser(
+  req: RequestWithUser,
+  res: Response
+) {
+  const { user } = req;
+  return res.status(200).json(user);
+}
+
+export async function handleUpdateCurrentUser(
+  req: RequestWithUser,
+  res: Response
+) {
+  const data = req.body;
+  const prisma = new PrismaClient();
+
+  const resultUser = await prisma.user.update({
+    where: {
+      id: req.user.id,
+    },
+    data,
+  });
+
+  await prisma.$disconnect();
+
+  return res.status(200).json(resultUser);
 }
