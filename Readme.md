@@ -25,12 +25,12 @@ Getting started with ExpressKit is easy asf! Follow the steps below and get your
 #### Npm 
   1. **Install the source code**
   ```sh
-  npx @roee1454/ExpressKit your_directory
+  npx @roee1454/express-kit your_directory
   cd your_directory
   npm install
   ```
   2. Follow the `setup_guide.txt` file (5 minutes tops!)
-  3. run `npm start:dev` and that's it!
+  3. run `npm run start:dev` and that's it!
 
 #### Git
   1. **Clone the Repository**
