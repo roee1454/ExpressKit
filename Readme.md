@@ -13,7 +13,7 @@ This starter kit supports a plethora of features to ensure you have a robust and
 - 📁 **File Management Router**: Manage files with ease.
 - 📘 **TypeScript Support**: Write clean and type-safe code.
 - 🛡️ **Zod Validators**: Ensure data validation and integrity.
-- 🗄️ **Prisma Integration**: Supports all databases compatible with Prisma.
+- 🗄️ **Prisma Integration**: Comes with Prisma ORM out of the box.
 - 📦 **Webpack Bundling**: Efficient bundling for production.
 
 ## Quick Start Guide
@@ -41,6 +41,3 @@ Getting started with ExpressKit is easy asf! Follow the steps below and get your
   ```
   2. Follow the `setup_guide.txt` file (5 minutes tops!)
   3. run `npm run start:dev` and that's it!
-
-### Easy right?
-That's all the effort you should be putting in for your great ideas!👌
